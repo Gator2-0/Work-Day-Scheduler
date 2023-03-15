@@ -89,7 +89,7 @@ $(function () {
   let currentHour = parseInt(dayjs().format('H')); //set the current hour 
   console.log('Current hour is '+ currentHour);
 
-  updateColor(currentHour); // to test function over time simply replace the 'currentHour' by a time of your choice (24h system)
+  updateColor(13); // to test function over time simply replace the 'currentHour' by a time of your choice (24h system)
                             //ie: 14 for 2pm
 
   
