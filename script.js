@@ -1,23 +1,15 @@
-// Wrap all code that interacts with the DOM in a call to jQuery to ensure that
-// the code isn't run until the browser has finished rendering all the elements
-// in the html.
+
 let timer = $('#current-day');
 
 $(function () {
   let timer = $('#currentDay');
   let rowEl = $(".row");
   let container = $(".container-lg")
-  // TODO: Add a listener for click events on the save button. This code should
-  // use the id in the containing time-block as a key to save the user input in
-  // local storage. HINT: What does `this` reference in the click listener
-  // function? How can DOM traversal be used to get the "hour-x" id of the
-  // time-block containing the button that was clicked? How might the id be
-  // useful when saving the description in local storage?
+  
   let savedEvent = JSON.parse(localStorage.getItem('ScheculeEvent'));
   console.log(savedEvent);
   rowEl.on('click','.saveBtn',saveSchedule )
 
-  
   //save tasks to the local config
   function saveSchedule(){
     
@@ -26,35 +18,38 @@ $(function () {
     
     let task = $(this).siblings('.description').val().trim();
     console.log(task);
-    if( savedEvent == null){
-      savedEvent = [];
-    }
     let newEvent = selectedRow + '--' + task;
-    savedEvent.push(newEvent);
-
+    if( savedEvent == null){ //if no local storage found, replace with empty array and add new event
+      savedEvent = [];
+      
+    }else{ // else, loop through array and check for existing event at this time
+      for (let index = 0; index < savedEvent.length; index++) {
+        let savedEventrow = savedEvent[index].split('--');
+        console.log(savedEventrow[0]);
+        
+        if(savedEventrow[0] == selectedRow ){// if found remove the event from array
+          console.log('existing event found in index '+ index)
+          savedEvent.splice(index, 1);
+        }                             
+      }
+    }
+    savedEvent.push(newEvent); 
     localStorage.setItem('ScheculeEvent', JSON.stringify(savedEvent));
   }
 
- 
-  //
-  // TODO: Add code to apply the past, present, or future class to each time
-  // block by comparing the id to the current hour. HINTS: How can the id
-  // attribute of each time-block be used to conditionally add or remove the
-  // past, present, and future classes? How can Day.js be used to get the
-  // current hour in 24-hour time?
-  let currentHour = parseInt(dayjs().format('H'));
-  console.log('Current hour is '+currentHour)
-  function updateColor(){
-    let rowChildren = container.children('.row');
-    console.log(rowChildren);
 
+  //update the rows color depending on the time, past grey, present red future green
+  function updateColor(hour){
+    let rowChildren = container.children('.row');
+    
     for (let index = 0; index < rowChildren.length; index++) {
-      let elToArray = rowChildren[index].id.split('-');
-      console.log(elToArray[1]);
-      console.log(elToArray[1] == currentHour);
-      if(elToArray[1] < currentHour){
+      let elToArray = rowChildren[index].id.split('-'); // take the row id, remove the 'hour' 
+      let parsedTime = parseInt(elToArray[1]); // parsed from string to int
+      
+
+      if(parsedTime < hour){
         $(rowChildren[index]).addClass('past');
-      }else if(elToArray[1] == currentHour){
+      }else if(parsedTime == hour){
         $(rowChildren[index]).addClass('present');
       }else{
         $(rowChildren[index]).addClass('future');
@@ -63,18 +58,14 @@ $(function () {
     }
   }
 
-  //
-  // TODO: Add code to get any user input that was saved in localStorage and set
-  // the values of the corresponding textarea elements. HINT: How can the id
-  // attribute of each time-block be used to do this?
-   //retrieve task from the local config and display them in the correct row.
+  //retrieve the event from the local storage and add them to the correct row
    function retrieveSchedule(){
     console.log('inside the retrievingSchedule')
-    console.log(savedEvent == null);
+    
     if(savedEvent !== null){
       for (let index = 0; index < savedEvent.length; index++) {
         let hourArray = savedEvent[index].split('--');
-        let row = '#'+ hourArray[0];
+        let row = '#'+ hourArray[0];        //Get the ID from the stored event then  add # and use it as Id.
         console.log(row);
         let task = hourArray[1];
         console.log(task);
@@ -83,10 +74,10 @@ $(function () {
       }
     }
   }
-  //
-  // TODO: Add code to display the current date in the header of the page.
+  
+  //display time at the top of page
   function displayTime(){
-    timer.text(dayjs().format('ddd MMM YYYY - h:ma'));
+    timer.text(dayjs().format('ddd MMM YYYY - h:mma'));
   }
 
   setInterval(() => {
@@ -94,7 +85,18 @@ $(function () {
   }, 1000);
 
   retrieveSchedule();
-  updateColor();
+
+  let currentHour = parseInt(dayjs().format('H')); //set the current hour 
+  console.log('Current hour is '+ currentHour);
+
+  updateColor(currentHour); // to test function over time simply replace the 'currentHour' by a time of your choice (24h system)
+                            //ie: 14 for 2pm
+
+  
+
+
+  
+  
   
 });
 
